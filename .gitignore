@@ -24,6 +24,10 @@ wheels/
 # Project specific
 tmp/
 *.log
-
 *.pdf
 output.md
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/

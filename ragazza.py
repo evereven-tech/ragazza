@@ -107,7 +107,9 @@ def cleanup_temp_dir(temp_dir):
     except Exception as e:
         logger.error(f"Could not remove temporary directory: {e}")
 
-def main():
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
     try:
         args = parse_arguments()
         input_pdf = args.input
