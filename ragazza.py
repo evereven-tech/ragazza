@@ -13,6 +13,8 @@ import boto3
 import random
 from tqdm import tqdm
 
+# Could you setup this code to use N. Virginia as AWS region for bedrock ? AI!
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -95,10 +97,8 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description='Convert PDF to markdown with AI analysis')
     parser.add_argument('input', help='Input PDF file path')
     parser.add_argument('output', help='Output markdown file path')
-    parser.add_argument('--model', default='anthropic.claude-3-sonnet-20240229-v1:0', 
-                      help='AWS Bedrock Claude model to use')
-    parser.add_argument('--max-tokens', type=int, default=1000, 
-                      help='Maximum tokens for Claude response')
+    parser.add_argument('--model', default='anthropic.claude-3-5-sonnet-20241022-v2:0', help='AWS Bedrock Claude model to use')
+    parser.add_argument('--max-tokens', type=int, default=1000, help='Maximum tokens for Claude response')
     return parser.parse_args()
 
 def cleanup_temp_dir(temp_dir):
