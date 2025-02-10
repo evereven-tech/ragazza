@@ -1,4 +1,6 @@
-# Visual PDF to RAG
+# Ragazza
+
+> The name "Ragazza" was chosen as it's memorable, simple, and cleverly contains "RAG" (Retrieval-Augmented Generation) within its spelling.
 
 A tool to convert PDF slides into markdown format with AI-powered content analysis, suitable for loading into LLM Models.
 
@@ -13,21 +15,43 @@ A tool to convert PDF slides into markdown format with AI-powered content analys
 
 ## Installation
 
-1. Install system dependencies:
+### Using pip
+
+```bash
+pip install ragazza
+```
+
+### From source
+
+1. Clone the repository:
    ```bash
-   # Ubuntu/Debian
-   sudo apt-get install poppler-utils
-   
-   # macOS
-   brew install poppler
-   
-   # Windows: Download and add Poppler to PATH
+   git clone https://github.com/evereven-tech/ragazza.git
+   cd ragazza
    ```
 
-2. Install Python dependencies:
+2. Use make commands for development:
    ```bash
-   pip install -r requirements.txt
+   make help         # Show all available commands
+   make install     # Install package in production mode
+   make install-dev # Install in development mode with dev dependencies
+   make build      # Build package distribution
+   make lint       # Check style with flake8
+   make test       # Run tests
+   make clean      # Clean up build artifacts
    ```
+
+### System Dependencies
+
+You'll need to install Poppler for PDF processing:
+```bash
+# Ubuntu/Debian
+sudo apt-get install poppler-utils
+
+# macOS
+brew install poppler
+
+# Windows: Download and add Poppler to PATH
+```
 
 ## AWS Configuration
 
@@ -40,12 +64,12 @@ Ensure you have AWS credentials configured:
 
 Basic usage:
 ```bash
-python ragazza.py input.pdf output.md
+ragazza input.pdf output.md
 ```
 
 Advanced options:
 ```bash
-python ragazza.py --model "anthropic.claude-3-sonnet-20240229-v1:0" --max-tokens 1000 input.pdf output.md
+ragazza --model "anthropic.claude-3-sonnet-20240229-v1:0" --max-tokens 1000 input.pdf output.md
 ```
 
 ## Output
