@@ -154,6 +154,10 @@ def main():
                 md_file.write(f"{explanation}\n\n")
                 md_file.write("---\n\n")
 
+    # could you close this try-catch block AI!
+    
+    #     
+
 if __name__ == "__main__":
     try:
         main()
