@@ -153,10 +153,13 @@ def main():
                 md_file.write("### Content Explanation\n")
                 md_file.write(f"{explanation}\n\n")
                 md_file.write("---\n\n")
-
-    # could you close this try-catch block AI!
-    
-    #     
+                
+    except Exception as e:
+        logger.error(f"Error processing PDF: {e}")
+        sys.exit(1)
+    finally:
+        # Clean up temporary directory
+        cleanup_temp_dir(temp_dir)
 
 if __name__ == "__main__":
     try:
