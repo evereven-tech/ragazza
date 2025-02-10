@@ -18,6 +18,13 @@ setup(
     package_dir={"": "src"},
     packages=find_packages(where="src"),
     install_requires=requirements,
+    extras_require={
+        'dev': [
+            'pytest>=7.0',
+            'flake8>=6.0',
+            'build>=1.0',
+        ],
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
