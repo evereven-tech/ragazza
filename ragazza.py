@@ -13,8 +13,6 @@ import boto3
 import random
 from tqdm import tqdm
 
-# Could you setup this code to use N. Virginia as AWS region for bedrock ? AI!
-
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -120,8 +118,8 @@ def main():
         # Create temporary directory
         temp_dir = create_temp_dir(pdf_name, timestamp)
         
-        # Initialize AWS Bedrock client
-        bedrock_runtime = boto3.client('bedrock-runtime')
+        # Initialize AWS Bedrock client for N. Virginia region
+        bedrock_runtime = boto3.client('bedrock-runtime', region_name='us-east-1')
         
         # Convert PDF to images
         logger.info("Converting PDF to images...")
