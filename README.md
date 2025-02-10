@@ -7,7 +7,7 @@ A tool to convert PDF slides into markdown format with AI-powered content analys
 ## Features
 
 - Extracts text content from PDF slides
-- Generates visual descriptions using Claude AI
+- Generates visual descriptions using Claude Models (or any other AWS Bedrock availables)
 - Provides educational purpose analysis for each slide
 - Supports error handling and retry mechanisms
 - Progress tracking with tqdm
@@ -32,12 +32,12 @@ pip install ragazza
 2. Use make commands for development:
    ```bash
    make help         # Show all available commands
-   make install     # Install package in production mode
-   make install-dev # Install in development mode with dev dependencies
-   make build      # Build package distribution
-   make lint       # Check style with flake8
-   make test       # Run tests
-   make clean      # Clean up build artifacts
+   make install      # Install package in production mode
+   make install-dev  # Install in development mode with dev dependencies
+   make build        # Build package distribution
+   make lint         # Check style with flake8
+   make test         # Run tests
+   make clean        # Clean up build artifacts
    ```
 
 ### System Dependencies
@@ -69,7 +69,7 @@ ragazza input.pdf output.md
 
 Advanced options:
 ```bash
-ragazza --model "anthropic.claude-3-sonnet-20240229-v1:0" --max-tokens 1000 input.pdf output.md
+ragazza --model "anthropic.claude-3-5-sonnet-20241022-v2:0" --max-tokens 1000 input.pdf output.md
 ```
 
 ## Output
