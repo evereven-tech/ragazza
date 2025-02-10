@@ -2,12 +2,27 @@ import os
 import sys
 import time
 import json
+import shutil
+import logging
+import argparse
 from datetime import datetime
 from pathlib import Path
 import PyPDF2
 from pdf2image import convert_from_path
 import boto3
 import random
+from tqdm import tqdm
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s: %(message)s',
+    handlers=[
+        logging.FileHandler('ragazza.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 def exponential_backoff(attempt, max_attempts=5, base_delay=1):
     """Implement exponential backoff with jitter"""
@@ -75,13 +90,30 @@ def get_page_explanation(text_content, visual_description, bedrock_client):
     
     return invoke_claude(prompt, bedrock_client)
 
-def main():
-    if len(sys.argv) != 3:
-        print("Usage: ragazza input.pdf output.md")
-        sys.exit(1)
+def parse_arguments():
+    """Parse command line arguments"""
+    parser = argparse.ArgumentParser(description='Convert PDF to markdown with AI analysis')
+    parser.add_argument('input', help='Input PDF file path')
+    parser.add_argument('output', help='Output markdown file path')
+    parser.add_argument('--model', default='anthropic.claude-3-sonnet-20240229-v1:0', 
+                      help='AWS Bedrock Claude model to use')
+    parser.add_argument('--max-tokens', type=int, default=1000, 
+                      help='Maximum tokens for Claude response')
+    return parser.parse_args()
 
-    input_pdf = sys.argv[1]
-    output_md = sys.argv[2]
+def cleanup_temp_dir(temp_dir):
+    """Clean up temporary directory"""
+    try:
+        shutil.rmtree(temp_dir)
+        logger.info(f"Temporary directory {temp_dir} cleaned up")
+    except Exception as e:
+        logger.error(f"Could not remove temporary directory: {e}")
+
+def main():
+    try:
+        args = parse_arguments()
+        input_pdf = args.input
+        output_md = args.output
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     pdf_name = Path(input_pdf).stem
     
@@ -92,11 +124,12 @@ def main():
     bedrock_runtime = boto3.client('bedrock-runtime')
     
     # Convert PDF to images
+    logger.info("Converting PDF to images...")
     images = convert_from_path(input_pdf)
     
     with open(output_md, 'w', encoding='utf-8') as md_file:
-        for page_num, image in enumerate(images):
-            print(f"Processing page {page_num + 1}...")
+        for page_num, image in tqdm(enumerate(images), total=len(images), desc="Processing Pages"):
+            logger.info(f"Processing page {page_num + 1}")
             
             # Save page image
             image_path = f"{temp_dir}/page_{page_num + 1}.png"
