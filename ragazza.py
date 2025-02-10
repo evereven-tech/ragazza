@@ -114,45 +114,58 @@ def main():
         args = parse_arguments()
         input_pdf = args.input
         output_md = args.output
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    pdf_name = Path(input_pdf).stem
-    
-    # Create temporary directory
-    temp_dir = create_temp_dir(pdf_name, timestamp)
-    
-    # Initialize AWS Bedrock client
-    bedrock_runtime = boto3.client('bedrock-runtime')
-    
-    # Convert PDF to images
-    logger.info("Converting PDF to images...")
-    images = convert_from_path(input_pdf)
-    
-    with open(output_md, 'w', encoding='utf-8') as md_file:
-        for page_num, image in tqdm(enumerate(images), total=len(images), desc="Processing Pages"):
-            logger.info(f"Processing page {page_num + 1}")
-            
-            # Save page image
-            image_path = f"{temp_dir}/page_{page_num + 1}.png"
-            image.save(image_path)
-            
-            # Extract text
-            text_content = extract_text_from_pdf(input_pdf, page_num)
-            
-            # Get visual description
-            visual_description = get_page_description(image_path, bedrock_runtime)
-            
-            # Get explanation
-            explanation = get_page_explanation(text_content, visual_description, bedrock_runtime)
-            
-            # Write to markdown file
-            md_file.write(f"## Page {page_num + 1}\n\n")
-            md_file.write("### Extracted Content\n")
-            md_file.write(f"```\n{text_content}\n```\n\n")
-            md_file.write("### Visual Description\n")
-            md_file.write(f"{visual_description}\n\n")
-            md_file.write("### Content Explanation\n")
-            md_file.write(f"{explanation}\n\n")
-            md_file.write("---\n\n")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        pdf_name = Path(input_pdf).stem
+        
+        # Create temporary directory
+        temp_dir = create_temp_dir(pdf_name, timestamp)
+        
+        # Initialize AWS Bedrock client
+        bedrock_runtime = boto3.client('bedrock-runtime')
+        
+        # Convert PDF to images
+        logger.info("Converting PDF to images...")
+        images = convert_from_path(input_pdf)
+        
+        with open(output_md, 'w', encoding='utf-8') as md_file:
+            for page_num, image in tqdm(enumerate(images), total=len(images), desc="Processing Pages"):
+                logger.info(f"Processing page {page_num + 1}")
+                
+                # Save page image
+                image_path = f"{temp_dir}/page_{page_num + 1}.png"
+                image.save(image_path)
+                
+                # Extract text
+                text_content = extract_text_from_pdf(input_pdf, page_num)
+                
+                # Get visual description
+                visual_description = get_page_description(image_path, bedrock_runtime)
+                
+                # Get explanation
+                explanation = get_page_explanation(text_content, visual_description, bedrock_runtime)
+                
+                # Write to markdown file
+                md_file.write(f"## Page {page_num + 1}\n\n")
+                md_file.write("### Extracted Content\n")
+                md_file.write(f"```\n{text_content}\n```\n\n")
+                md_file.write("### Visual Description\n")
+                md_file.write(f"{visual_description}\n\n")
+                md_file.write("### Content Explanation\n")
+                md_file.write(f"{explanation}\n\n")
+                md_file.write("---\n\n")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except FileNotFoundError:
+        logger.error(f"Error: Input PDF file not found.")
+        sys.exit(1)
+    except PermissionError:
+        logger.error(f"Error: Permission denied when accessing files.")
+        sys.exit(1)
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        sys.exit(1)
+    finally:
+        # Cleanup will be handled by the context manager
+        pass
