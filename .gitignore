@@ -24,3 +24,6 @@ wheels/
 # Project specific
 tmp/
 *.log
+
+*.pdf
+output.md
