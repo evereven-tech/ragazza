@@ -55,10 +55,22 @@ brew install poppler
 
 ## AWS Configuration
 
-Ensure you have AWS credentials configured:
-1. Install AWS CLI: `pip install awscli`
-2. Run `aws configure`
-3. Enter your AWS Access Key ID, Secret Access Key, default region, and output format
+This tool requires access to AWS Bedrock to use Claude AI models for content analysis:
+
+1. Ensure you have an AWS account with Bedrock access enabled
+2. Request model access for Claude models in the AWS Bedrock console
+3. Configure your AWS credentials:
+   ```bash
+   pip install awscli
+   aws configure
+   ```
+4. Enter your AWS Access Key ID, Secret Access Key, and set default region to 'us-east-1'
+
+**Important notes:**
+- Using AWS Bedrock incurs costs based on token usage
+- AWS Bedrock may not be available in all regions
+- Your AWS user/role needs permissions for 'bedrock:InvokeModel'
+- If you don't have AWS Bedrock access, this tool cannot function properly
 
 ## Usage
 
@@ -78,4 +90,3 @@ The script generates:
 - A markdown file with structured content for each slide
 - Temporary images in ./tmp directory (automatically cleaned up)
 - A log file (ragazza.log) with processing details
-
