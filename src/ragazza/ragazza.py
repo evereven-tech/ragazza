@@ -32,17 +32,17 @@ def exponential_backoff(attempt, max_attempts=5, base_delay=1):
     delay = min(300, base_delay * (2 ** attempt) + random.uniform(0, 0.1))
     time.sleep(delay)
 
-def invoke_claude(prompt, bedrock_client, image_path=None, max_attempts=5):
+def invoke_claude(prompt, bedrock_client, model_id, max_tokens=1000, image_path=None, max_attempts=5):
     """Invoke Claude through AWS Bedrock with retry logic, supporting images"""
     
-    # Preparar el mensaje según si hay imagen o no
+    # Prepare message based on whether there's an image or not
     if image_path:
-        # Leer la imagen y codificarla en base64
+        # Read the image and encode it in base64
         with open(image_path, "rb") as image_file:
             image_bytes = image_file.read()
             base64_image = base64.b64encode(image_bytes).decode('utf-8')
         
-        # Crear mensaje multimodal
+        # Create multimodal message
         messages = [
             {
                 "role": "user",
@@ -63,7 +63,7 @@ def invoke_claude(prompt, bedrock_client, image_path=None, max_attempts=5):
             }
         ]
     else:
-        # Mensaje de solo texto
+        # Text-only message
         messages = [
             {
                 "role": "user",
@@ -73,7 +73,7 @@ def invoke_claude(prompt, bedrock_client, image_path=None, max_attempts=5):
     
     body = json.dumps({
         "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 1000,
+        "max_tokens": max_tokens,
         "temperature": 0,
         "messages": messages
     })
@@ -81,7 +81,7 @@ def invoke_claude(prompt, bedrock_client, image_path=None, max_attempts=5):
     for attempt in range(max_attempts):
         try:
             response = bedrock_client.invoke_model(
-                modelId="anthropic.claude-3-sonnet-20240229-v1:0",
+                modelId=model_id,
                 body=body
             )
             response_body = json.loads(response.get('body').read())
@@ -105,14 +105,14 @@ def extract_text_from_pdf(pdf_path, page_num):
         page = pdf_reader.pages[page_num]
         return page.extract_text().strip()
 
-def get_page_description(image_path, bedrock_client):
+def get_page_description(image_path, bedrock_client, model_id, max_tokens):
     """Get page description using Claude with the actual image"""
     prompt = """Please describe the visual content of this slide objectively and in detail. 
     Focus on visual elements, layout, graphics, diagrams, and overall structure."""
     
-    return invoke_claude(prompt, bedrock_client, image_path=image_path)
+    return invoke_claude(prompt, bedrock_client, model_id, max_tokens, image_path=image_path)
 
-def get_page_explanation(text_content, visual_description, bedrock_client):
+def get_page_explanation(text_content, visual_description, bedrock_client, model_id, max_tokens):
     """Get content explanation using Claude"""
     prompt = f"""Based on the extracted text and visual description of the slide, 
     explain the educational purpose and main message it tries to convey.
@@ -121,7 +121,7 @@ def get_page_explanation(text_content, visual_description, bedrock_client):
     
     Visual description: {visual_description}"""
     
-    return invoke_claude(prompt, bedrock_client)
+    return invoke_claude(prompt, bedrock_client, model_id, max_tokens)
 
 def parse_arguments():
     """Parse command line arguments"""
@@ -147,6 +147,8 @@ def main(args=None):
         args = parse_arguments()
         input_pdf = args.input
         output_md = args.output
+        model_id = args.model
+        max_tokens = args.max_tokens
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         pdf_name = Path(input_pdf).stem
         
@@ -172,10 +174,10 @@ def main(args=None):
                 text_content = extract_text_from_pdf(input_pdf, page_num)
                 
                 # Get visual description
-                visual_description = get_page_description(image_path, bedrock_runtime)
+                visual_description = get_page_description(image_path, bedrock_runtime, model_id, max_tokens)
                 
                 # Get explanation
-                explanation = get_page_explanation(text_content, visual_description, bedrock_runtime)
+                explanation = get_page_explanation(text_content, visual_description, bedrock_runtime, model_id, max_tokens)
                 
                 # Write to markdown file
                 md_file.write(f"## Page {page_num + 1}\n\n")
