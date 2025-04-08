@@ -5,6 +5,7 @@ import json
 import shutil
 import logging
 import argparse
+import base64
 from datetime import datetime
 from pathlib import Path
 import PyPDF2
@@ -31,18 +32,50 @@ def exponential_backoff(attempt, max_attempts=5, base_delay=1):
     delay = min(300, base_delay * (2 ** attempt) + random.uniform(0, 0.1))
     time.sleep(delay)
 
-def invoke_claude(prompt, bedrock_client, max_attempts=5):
-    """Invoke Claude through AWS Bedrock with retry logic"""
-    body = json.dumps({
-        "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 1000,
-        "temperature": 0,
-        "messages": [
+def invoke_claude(prompt, bedrock_client, image_path=None, max_attempts=5):
+    """Invoke Claude through AWS Bedrock with retry logic, supporting images"""
+    
+    # Preparar el mensaje según si hay imagen o no
+    if image_path:
+        # Leer la imagen y codificarla en base64
+        with open(image_path, "rb") as image_file:
+            image_bytes = image_file.read()
+            base64_image = base64.b64encode(image_bytes).decode('utf-8')
+        
+        # Crear mensaje multimodal
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": "image/png",
+                            "data": base64_image
+                        }
+                    },
+                    {
+                        "type": "text",
+                        "text": prompt
+                    }
+                ]
+            }
+        ]
+    else:
+        # Mensaje de solo texto
+        messages = [
             {
                 "role": "user",
                 "content": prompt
             }
         ]
+    
+    body = json.dumps({
+        "anthropic_version": "bedrock-2023-05-31",
+        "max_tokens": 1000,
+        "temperature": 0,
+        "messages": messages
     })
 
     for attempt in range(max_attempts):
@@ -73,11 +106,11 @@ def extract_text_from_pdf(pdf_path, page_num):
         return page.extract_text().strip()
 
 def get_page_description(image_path, bedrock_client):
-    """Get page description using Claude"""
-    prompt = f"""Please describe the visual content of this slide objectively and in detail. 
+    """Get page description using Claude with the actual image"""
+    prompt = """Please describe the visual content of this slide objectively and in detail. 
     Focus on visual elements, layout, graphics, diagrams, and overall structure."""
     
-    return invoke_claude(prompt, bedrock_client)
+    return invoke_claude(prompt, bedrock_client, image_path=image_path)
 
 def get_page_explanation(text_content, visual_description, bedrock_client):
     """Get content explanation using Claude"""
